@@ -1,0 +1,15 @@
+# Ignore les fichiers d'environnement et de configuration
+venv/
+.env
+__pycache__/
+db.sqlite3
+
+# Ignore les fichiers de logs
+*.log
+logs/
+
+# Ignore les fichiers de compilation
+*.pyc
+*.pyo
+*.pyd
+node_modules/
