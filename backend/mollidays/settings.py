@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 import os
 from dotenv import load_dotenv
 
@@ -42,10 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework', 
+    'rest_framework_simplejwt', 
     'users',
-    'bookings',
-    'payments',
-    'circuits',
+    'mollidays',
 ]
 
 MIDDLEWARE = [
@@ -95,8 +95,22 @@ DATABASES = {
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # Active JWT
+    ),
+}
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Durée de vie du token (15 min)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token valable 7 jours
+    'ROTATE_REFRESH_TOKENS': True,  # Permet de rafraîchir le token
+    'BLACKLIST_AFTER_ROTATION': True,
+    'SIGNING_KEY': SECRET_KEY,  # Clé secrète Django utilisée pour signer les tokens
+    'AUTH_HEADER_TYPES': ('Bearer',),  # JWT sera envoyé sous la forme 'Bearer <token>'
+}
 
+AUTH_USER_MODEL = 'users.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
