@@ -1,7 +1,7 @@
 "use client"; // Pour éviter l'erreur d'hydratation
 
 import { useState, useEffect } from "react";
-import api from "@/utils/api"; // Assure-toi que ce chemin est correct
+import api from "@/lib/api"; // Assure-toi que ce chemin est correct
 
 interface User {
   id: number;
