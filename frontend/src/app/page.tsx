@@ -1,35 +1,10 @@
-"use client"; // Pour éviter l'erreur d'hydratation
+"use client";
 
-import { useState, useEffect } from "react";
-import api from "@/lib/api"; // Assure-toi que ce chemin est correct
+import dynamic from "next/dynamic";
 
-interface User {
-  id: number;
-  email: string;
-}
+// Désactiver complètement le SSR pour toute la page
+const Page = dynamic(() => import("@/components/HomePage"), { ssr: false });
 
 export default function Home() {
-  const [users, setUsers] = useState<User[] | null>(null);
-
-  useEffect(() => {
-    api.get("/users/")
-      .then((response) => setUsers(response.data))
-      .catch((error) => console.error("Error fetching users:", error));
-  }, []);
-
-  return (
-    <div>
-      <h1>Liste des utilisateurs</h1>
-      {/* Si les données ne sont pas encore chargées, on affiche un loading */}
-      {!users ? (
-        <p>Chargement...</p>
-      ) : (
-        <ul>
-          {users.map((user) => (
-            <li key={user.id}>{user.email}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+    return <Page />;
 }
