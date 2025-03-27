@@ -11,6 +11,11 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
