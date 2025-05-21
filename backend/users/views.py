@@ -30,9 +30,6 @@ def protected_view(request):
 def register_view(request):
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
-        try: 
-            user = UserService.register_user(serializer.validated_data)
-            return Response({"message": "Utilisateur créé avec succès !"}, status=status.HTTP_201_CREATED)
-        except ValidationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response({"message": "Utilisateur créé avec succès !"}, status=201)
+    return Response(serializer.errors, status=400)
