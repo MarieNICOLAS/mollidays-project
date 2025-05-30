@@ -16,7 +16,19 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         return self.create_user(email, password, **extra_fields)
 
+
 class User(AbstractBaseUser, PermissionsMixin):
+    ACCOUNT_STATUS_CHOICES = [
+        ('active', 'Actif'),
+        ('suspended', 'Suspendu'),
+        ('deleted', 'Supprimé'),
+    ]
+
+    ROLE_CHOICES = [
+        ('user', 'Utilisateur'),
+        ('admin', 'Administrateur'),
+    ]
+
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -24,6 +36,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
+
+    # Champs ajoutés
+    account_status = models.CharField(max_length=10, choices=ACCOUNT_STATUS_CHOICES, default='active')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
 
     objects = UserManager()
 

@@ -1,13 +1,16 @@
 from rest_framework import generics
-from django.contrib.auth import get_user_model
 from rest_framework import status
-from users.serializer import UserRegisterSerializer
-from users.services.user_service import UserService
-from .serializer import UserSerializer
-from django.core.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .serializer import UserSerializer
+from users.serializer import UserRegisterSerializer
+from users.services.user_service import UserService
+
+from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model, authenticate
 
 User = get_user_model()
 
@@ -33,3 +36,19 @@ def register_view(request):
         serializer.save()
         return Response({"message": "Utilisateur créé avec succès !"}, status=201)
     return Response(serializer.errors, status=400)
+
+@api_view(['POST'])
+def login_view(request):
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    user = authenticate(request, email=email, password=password)
+
+    if user is not None and user.is_active:
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        })
+    else:
+        return Response({'detail': 'Identifiants invalides.'}, status=status.HTTP_401_UNAUTHORIZED)
