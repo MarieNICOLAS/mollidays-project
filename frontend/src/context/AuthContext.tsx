@@ -1,7 +1,8 @@
-"use client"; // 🚀 Ajoute ça tout en haut !
+"use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import api from "@/lib/api";
+import axios from "axios";
 
 interface User {
     id: number;
@@ -15,13 +16,11 @@ interface AuthContextType {
     logout: () => void;
 }
 
-// Création du contexte
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
 
-    // Vérifier si un token existe au chargement
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -31,14 +30,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const fetchUser = async (authToken: string) => {
         try {
-            console.log("🔍 Fetching user with token:", authToken);
             const response = await api.get("/users/me/", {
                 headers: { Authorization: `Bearer ${authToken}` },
             });
-            console.log("✅ User received:", response.data);
             setUser(response.data);
         } catch (error) {
-            console.error("❌ Erreur récupération user:", error);
+            console.error("❌ Fetch error", error);
             logout();
         }
     };
@@ -48,9 +45,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const response = await api.post("/token/", { email, password });
             const { access } = response.data;
             localStorage.setItem("token", access);
-            fetchUser(access);
+            await fetchUser(access);
         } catch (error) {
-            console.error("❌ Login failed:", error);
+            if (axios.isAxiosError(error) && error.response) {
+               console.error("🔴 Login failed:", error.response.data);
+            } else {
+                console.error("🔴 Unknown error:", error);
+            }
+            throw error;
         }
     };
 

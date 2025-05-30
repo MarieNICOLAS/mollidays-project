@@ -67,13 +67,19 @@ const RegisterForm = () => {
         router.push('/login');
       }, 1500);
     } catch (error: unknown) {
+      interface AxiosError {
+        response?: {
+          data?: Record<string, string>;
+        };
+      }
+
       if (
         typeof error === 'object' &&
         error !== null &&
         'response' in error &&
-        (error as any).response?.data
+        (error as AxiosError).response?.data
       ) {
-        setErrors((error as any).response.data);
+        setErrors((error as AxiosError).response!.data!);
       } else {
         setErrors({ general: 'Une erreur s’est produite. Veuillez réessayer.' });
       }
