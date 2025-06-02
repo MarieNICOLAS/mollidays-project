@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'users',
     'mollidays',
     'corsheaders',
+    'circuits',
 ]
 
 MIDDLEWARE = [
