@@ -27,7 +27,15 @@ def get_current_user(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def protected_view(request):
-    return Response({"message": f"Hello {request.user.email}, tu es bien authentifié !"})
+    user = request.user
+    return Response({
+        "message": f"Salut {user.first_name}, tu es bien authentifié !",
+        "user": {
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        }
+    })
 
 @api_view(['POST'])
 def register_view(request):

@@ -35,22 +35,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             });
             setUser(response.data);
         } catch (error) {
-            console.error("❌ Fetch error", error);
+            console.error("Fetch error", error);
             logout();
         }
     };
 
     const login = async (email: string, password: string) => {
         try {
-            const response = await api.post("/token/", { email, password });
+            const response = await api.post("/login/", { email, password });
             const { access } = response.data;
             localStorage.setItem("token", access);
             await fetchUser(access);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-               console.error("🔴 Login failed:", error.response.data);
+               console.error("Login failed:", error.response.data);
             } else {
-                console.error("🔴 Unknown error:", error);
+                console.error("Unknown error:", error);
             }
             throw error;
         }
