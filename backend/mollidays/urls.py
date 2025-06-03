@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
     path('api/', include('users.urls')),
+    path('api/circuits/', include('circuits.urls')),
 ]
 
