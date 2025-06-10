@@ -2,7 +2,6 @@ import os
 import sys
 from datetime import date
 
-# Ajoute backend/ au PYTHONPATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mollidays.settings")
@@ -14,13 +13,11 @@ from circuits.models.circuit import Circuit
 from circuits.models.category import Category
 
 def run():
-    # Crée une catégorie si elle n'existe pas
     beach_category, _ = Category.objects.get_or_create(
         name="Plage", 
         defaults={"description": "Vacances au soleil"}
     )
 
-    # Crée un circuit si non existant
     circuit, created = Circuit.objects.get_or_create(
         title="Évasion à Bali",
         defaults={
