@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'circuits',
     'booking',
+    'payment',
 ]
 
 MIDDLEWARE = [
