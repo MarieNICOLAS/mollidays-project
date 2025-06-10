@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'mollidays',
     'corsheaders',
     'circuits',
+    'booking',
 ]
 
 MIDDLEWARE = [
