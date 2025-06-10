@@ -24,5 +24,7 @@ urlpatterns = [
     path('', home, name='home'),
     path('api/', include('users.urls')),
     path('api/circuits/', include('circuits.urls')),
+    path("api/", include("booking.urls")),
+
 ]
 
