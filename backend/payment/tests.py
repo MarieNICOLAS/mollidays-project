@@ -4,6 +4,8 @@ from .models import Payment
 from django.contrib.auth import get_user_model
 from circuits.models import Circuit, Category
 from datetime import date
+from rest_framework.test import APIClient
+
 
 User = get_user_model()
 
@@ -42,3 +44,22 @@ class PaymentTestCase(TestCase):
         self.assertEqual(payment.status, 'pending')
         self.assertEqual(payment.amount, 2000)
         self.assertEqual(payment.booking.id, self.booking.id)
+
+    def test_admin_can_update_payment_status(self):
+        self.user.is_staff = True
+        self.user.save()
+
+        payment = Payment.objects.create(
+            booking=self.booking,
+            amount=self.booking.total_amount,
+            method='cb',
+            transaction_ref='TX987654321'
+        )
+
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        response = client.patch(f'/api/payments/{payment.id}/status/', {'status': 'refunded'}, format='json')
+        self.assertEqual(response.status_code, 200)
+        payment.refresh_from_db()
+        self.assertEqual(payment.status, 'refunded')
