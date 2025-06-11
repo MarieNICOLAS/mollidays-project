@@ -1,9 +1,9 @@
 from rest_framework import generics, permissions
-from .payment_serializer import PaymentSerializer
+from ..payment_serializer import PaymentSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import Payment
+from ..models import Payment
 
 class PaymentCreateAPIView(generics.CreateAPIView):
     queryset = Payment.objects.all()
