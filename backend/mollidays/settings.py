@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'circuits',
     'booking',
     'payment',
+    'reviews',
 ]
 
 MIDDLEWARE = [
