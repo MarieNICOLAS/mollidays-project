@@ -1,6 +1,7 @@
 # Ignore les fichiers d'environnement et de configuration
 venv/
-.env
+.env.local
+.env.docker
 __pycache__/
 db.sqlite3
 
