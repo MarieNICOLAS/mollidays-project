@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from booking.views import (
     BookingListAPIView,
     BookingCreateAPIView,
@@ -8,7 +9,10 @@ from booking.views import (
 )
 from booking.views.booking_status_update_view import BookingStatusUpdateView
 from booking.views.my_bookings_view import MyBookingsView
+from booking.views.admin_booking_view import AdminBookingViewSet
 
+router = DefaultRouter()
+router.register(r'bookings/manage', AdminBookingViewSet, basename='booking-manage')
 
 urlpatterns = [
     path('bookings/', BookingListAPIView.as_view(), name='booking-list'),
@@ -20,3 +24,5 @@ urlpatterns = [
     path('bookings/<int:pk>/status/', BookingStatusUpdateView.as_view(), name='booking-status-update'),
     path('me/bookings/', MyBookingsView.as_view(), name='my-bookings'),
 ]
+
+urlpatterns += router.urls
