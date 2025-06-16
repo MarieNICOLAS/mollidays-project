@@ -25,3 +25,11 @@ class PaymentStatusUpdateView(APIView):
         payment.status = new_status
         payment.save()
         return Response({"message": f"Statut mis à jour : {new_status}"})
+
+class AdminRefundAllView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request):
+        payments = Payment.objects.filter(status='failed')
+        payments.update(status='refunded')
+        return Response({"message": f"{payments.count()} paiements remboursés."})

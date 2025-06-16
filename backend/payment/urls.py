@@ -7,6 +7,7 @@ from .views.views import (
 from .views.payment_admin_view import (
     AdminPaymentListAPIView,
     PaymentStatusUpdateView,
+    AdminRefundAllView,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path('payments/<int:pk>/validate/', PaymentValidateAPIView.as_view()),
     path('payments/admin/', AdminPaymentListAPIView.as_view()),
     path('payments/<int:pk>/status/', PaymentStatusUpdateView.as_view()),
+    path('payments/admin/refund', AdminRefundAllView.as_view())
 ]
