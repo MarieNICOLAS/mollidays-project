@@ -1,8 +1,10 @@
 import uuid
 from rest_framework import serializers
 from .models import Payment
+from .models import Booking
 
 class PaymentSerializer(serializers.ModelSerializer):
+    booking = serializers.PrimaryKeyRelatedField(queryset=Booking.objects.all())
     class Meta:
         model = Payment
         fields = '__all__'

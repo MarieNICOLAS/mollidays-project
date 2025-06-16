@@ -1,10 +1,16 @@
+from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
-from payment.models import Payment
+from ..models import Payment
+from ..payment_serializer import PaymentSerializer
+
+class AdminPaymentListAPIView(generics.ListAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 class PaymentStatusUpdateView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [permissions.IsAdminUser]
 
     def patch(self, request, pk):
         try:
