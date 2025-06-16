@@ -4,11 +4,13 @@ from circuits.views.circuit_list_views import CircuitListAPIView
 from circuits.views.circuit_detail_views import CircuitDetailAPIView
 from circuits.views.circuit_manage_views import CircuitViewSet
 from circuits.views.circuit_filter import CircuitFilteredAPIView
-from circuits.views.category_views import CategoryListAPIView
-from circuits.views.tag_views import TagListAPIView
+from circuits.views.category_views import CategoryListAPIView, CategoryViewSet
+from circuits.views.tag_views import TagListAPIView, TagViewSet
 
 router = DefaultRouter()
 router.register(r'manage', CircuitViewSet, basename='circuit-manage')
+router.register(r'categories/manage', CategoryViewSet, basename='category-manage')
+router.register(r'tags/manage', TagViewSet, basename='tag-manage')
 
 urlpatterns = [
     path('', CircuitListAPIView.as_view(), name='circuit-list'),                     # homepage circuits
