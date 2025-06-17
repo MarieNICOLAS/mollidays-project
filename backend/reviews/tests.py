@@ -3,9 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from unittest.mock import patch
 
-# Create your tests here.
 User = get_user_model()
-
 
 class ReviewAPITestCase(TestCase):
     def setUp(self):
@@ -52,3 +50,20 @@ class ReviewAPITestCase(TestCase):
         response = self.client.get("/api/circuits/1/reviews/")
         self.assertEqual(response.status_code, 200)
         mock_get.assert_called_once_with(1)
+
+    @patch("reviews.views.get_reviews_for_circuit")
+    def test_get_reviews_for_circuit(self, mock_get):
+        mock_get.return_value = [
+            {
+                "id": "507f1f77bcf86cd799439011",
+                "user": self.user.id,
+                "circuit": 3,
+                "rating": 5,
+                "comment": "Génial !",
+                "created_at": "2025-06-17T12:00:00"
+            }
+        ]
+        response = self.client.get("/api/circuits/3/reviews/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        mock_get.assert_called_once_with(3)
