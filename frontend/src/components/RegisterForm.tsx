@@ -32,6 +32,19 @@ const initialFormData: RegisterFormData = {
   accept_cgu: false,
 };
 
+const getPasswordStrength = (password: string) => {
+  const length = password.length;
+  const hasLower = /[a-z]/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const hasSpecial = /[^a-zA-Z\d]/.test(password);
+  const score = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
+
+  if (length < 8) return { level: 'Faible', color: 'bg-red-500', width: 'w-1/4' };
+  if (length < 12 || score < 4) return { level: 'Moyen', color: 'bg-yellow-500', width: 'w-2/4' };
+  return { level: 'Fort', color: 'bg-green-600', width: 'w-full' };
+};
+
 const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState<RegisterFormData>(initialFormData);
   const [errors, setErrors] = useState<RegisterFormErrors>({});
@@ -57,19 +70,21 @@ const RegisterForm: React.FC = () => {
     if (!data.last_name.trim()) newErrors.last_name = 'Le nom est requis.';
     if (!data.email.trim()) {
       newErrors.email = 'L’adresse email est requise.';
-    } else if (
-      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(data.email)
-    ) {
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(data.email)) {
       newErrors.email = 'Adresse email invalide.';
     }
-    if (!data.password) newErrors.password = 'Le mot de passe est requis.';
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{12,}$/.test(data.password)) {
-      newErrors.password = 'Mot de passe trop faible. Min 12 caractères avec majuscule, minuscule, chiffre et caractère spécial.';
+    if (!data.password) {
+      newErrors.password = 'Le mot de passe est requis.';
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{12,}$/.test(data.password)) {
+      newErrors.password =
+        'Mot de passe trop faible. Min 12 caractères avec majuscule, minuscule, chiffre et caractère spécial.';
     }
-    if (data.password !== data.confirm_password)
+    if (data.password !== data.confirm_password) {
       newErrors.confirm_password = 'Les mots de passe ne correspondent pas.';
-    if (!data.accept_cgu)
+    }
+    if (!data.accept_cgu) {
       newErrors.accept_cgu = 'Vous devez accepter les CGU.';
+    }
     return newErrors;
   };
 
@@ -122,6 +137,8 @@ const RegisterForm: React.FC = () => {
     }
   };
 
+  const passwordStrength = getPasswordStrength(formData.password || '');
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -131,83 +148,32 @@ const RegisterForm: React.FC = () => {
     >
       <h2 className="text-xl font-semibold text-center">Créer un compte</h2>
 
-      <input
-        name="first_name"
-        type="text"
-        placeholder="Prénom"
-        value={formData.first_name}
-        onChange={handleChange}
-        className="p-2 border rounded"
-        autoComplete="given-name"
-        required
-        minLength={2}
-        maxLength={50}
-      />
+      <input name="first_name" type="text" placeholder="Prénom" value={formData.first_name} onChange={handleChange} className="p-2 border rounded" required />
       {errors.first_name && <p className="text-red-500 text-sm">{errors.first_name}</p>}
 
-      <input
-        name="last_name"
-        type="text"
-        placeholder="Nom"
-        value={formData.last_name}
-        onChange={handleChange}
-        className="p-2 border rounded"
-        autoComplete="family-name"
-        required
-        minLength={2}
-        maxLength={50}
-      />
+      <input name="last_name" type="text" placeholder="Nom" value={formData.last_name} onChange={handleChange} className="p-2 border rounded" required />
       {errors.last_name && <p className="text-red-500 text-sm">{errors.last_name}</p>}
 
-      <input
-        name="email"
-        type="email"
-        placeholder="Adresse email"
-        value={formData.email}
-        onChange={handleChange}
-        className="p-2 border rounded"
-        autoComplete="email"
-        required
-        maxLength={100}
-      />
+      <input name="email" type="email" placeholder="Adresse email" value={formData.email} onChange={handleChange} className="p-2 border rounded" required />
       {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
 
-      <input
-        name="password"
-        type="password"
-        placeholder="Mot de passe"
-        value={formData.password}
-        onChange={handleChange}
-        className="p-2 border rounded"
-        autoComplete="new-password"
-        required
-        minLength={8}
-      />
+      <input name="password" type="password" placeholder="Mot de passe" value={formData.password || ''} onChange={handleChange} className="p-2 border rounded" required />
       {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
 
-      <input
-        name="confirm_password"
-        type="password"
-        placeholder="Confirmer le mot de passe"
-        value={formData.confirm_password}
-        onChange={handleChange}
-        className="p-2 border rounded"
-        autoComplete="new-password"
-        required
-        minLength={8}
-      />
-      {errors.confirm_password && (
-        <p className="text-red-500 text-sm">{errors.confirm_password}</p>
+      {formData.password && (
+        <div className="flex flex-col gap-1">
+          <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+            <div className={`${passwordStrength.color} ${passwordStrength.width} h-full transition-all duration-300`} />
+          </div>
+          <p className="text-sm">Sécurité : <strong>{passwordStrength.level}</strong></p>
+        </div>
       )}
 
+      <input name="confirm_password" type="password" placeholder="Confirmer le mot de passe" value={formData.confirm_password || ''} onChange={handleChange} className="p-2 border rounded" required />
+      {errors.confirm_password && <p className="text-red-500 text-sm">{errors.confirm_password}</p>}
+
       <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          name="accept_cgu"
-          checked={formData.accept_cgu}
-          onChange={handleChange}
-          required
-        />
+        <input type="checkbox" name="accept_cgu" checked={formData.accept_cgu} onChange={handleChange} required />
         J’accepte les conditions générales d’utilisation
       </label>
       {errors.accept_cgu && <p className="text-red-500 text-sm">{errors.accept_cgu}</p>}
@@ -215,11 +181,7 @@ const RegisterForm: React.FC = () => {
       {errors.general && <p className="text-red-500 text-sm">{errors.general}</p>}
       {successMessage && <p className="text-green-600 text-sm text-center">{successMessage}</p>}
 
-      <button
-        type="submit"
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded disabled:opacity-60"
-        disabled={isSubmitting}
-      >
+      <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded disabled:opacity-60" disabled={isSubmitting}>
         {isSubmitting ? 'Inscription...' : 'S’inscrire'}
       </button>
     </form>
