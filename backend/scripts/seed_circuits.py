@@ -1,16 +1,10 @@
+# scripts/seed_circuits.py
 
 import os
-import sys
-from datetime import date
-from dotenv import load_dotenv
-
-BACKEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-sys.path.append(BACKEND_DIR)
-
-load_dotenv(os.path.join(BACKEND_DIR, '.env.local'))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mollidays.settings')
-
 import django
+from datetime import date
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mollidays.settings")
 django.setup()
 
 from circuits.models.circuit import Circuit
@@ -31,13 +25,13 @@ def run():
             "category_name": "Plage"
         },
         {
-            "title": "Montagnes de l'Atlas",
-            "description": "Randonnées et nuits berbères au cœur du Maroc.",
+            "title": "Trésors du Maroc",
+            "description": "Randonnées, kasbahs et médinas au cœur de l'Atlas.",
             "destination": "Maroc",
             "start_date": date(2025, 8, 5),
             "end_date": date(2025, 8, 15),
-            "price": 1199.00,
-            "duration": 11,
+            "price": 1190.00,
+            "duration": 10,
             "available_seats": 12,
             "status": "active",
             "category_name": "Montagne"
@@ -56,7 +50,7 @@ def run():
         },
         {
             "title": "Retraite Zen au Japon",
-            "description": "Séjour bien-être entre temples, méditation et nature.",
+            "description": "Séjour bien-être entre temples, méditation et forêt.",
             "destination": "Japon",
             "start_date": date(2025, 10, 15),
             "end_date": date(2025, 10, 25),
@@ -67,8 +61,8 @@ def run():
             "category_name": "Bien-être"
         },
         {
-            "title": "Trésors du Pérou",
-            "description": "Découverte de la culture Inca et du Machu Picchu.",
+            "title": "Culture Inca au Pérou",
+            "description": "Découverte de la culture péruvienne et Machu Picchu.",
             "destination": "Pérou",
             "start_date": date(2025, 11, 10),
             "end_date": date(2025, 11, 20),
