@@ -2,11 +2,14 @@
 
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from .models import Cart, CartItem
 from .serializers import CartSerializer, CartItemSerializer
 from django.shortcuts import get_object_or_404
 from circuits.models import Circuit
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
@@ -42,3 +45,11 @@ class CartViewSet(viewsets.ModelViewSet):
         item = get_object_or_404(CartItem, cart=cart, circuit_id=circuit_id)
         item.delete()
         return Response({"message": "Item removed."}, status=204)
+
+class MyCartView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data)
