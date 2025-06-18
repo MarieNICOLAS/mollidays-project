@@ -27,6 +27,10 @@ db-shell:
 seed:
 	docker exec -w /app -it mollidays-backend python3 scripts/seed_all.py
 
+check-seed:
+	docker exec -w /app -it mollidays-backend python3 scripts/check_seed.py
+
+
 reset:
 	docker-compose down -v
 	docker-compose up -d --build

@@ -16,7 +16,8 @@ from scripts import (
     seed_circuits,
     seed_steps_all,
     seed_payments,
-    seed_reviews
+    seed_reviews,
+    check_seed
 )
 
 if __name__ == "__main__":
@@ -29,5 +30,6 @@ if __name__ == "__main__":
     seed_steps_all.run()
     seed_payments.run()
     seed_reviews.run()
+    check_seed.run()
 
     print("✅ Seed complet terminé.")
