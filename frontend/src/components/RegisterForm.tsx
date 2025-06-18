@@ -63,8 +63,9 @@ const RegisterForm: React.FC = () => {
       newErrors.email = 'Adresse email invalide.';
     }
     if (!data.password) newErrors.password = 'Le mot de passe est requis.';
-    if (data.password && data.password.length < 8)
-      newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères.';
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{12,}$/.test(data.password)) {
+      newErrors.password = 'Mot de passe trop faible. Min 12 caractères avec majuscule, minuscule, chiffre et caractère spécial.';
+    }
     if (data.password !== data.confirm_password)
       newErrors.confirm_password = 'Les mots de passe ne correspondent pas.';
     if (!data.accept_cgu)
