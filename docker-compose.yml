@@ -27,6 +27,17 @@ services:
     depends_on:
       - db
 
+  frontend:
+        build:
+          context: ./frontend
+        container_name: mollidays-frontend
+        ports:
+          - "3000:3000"
+        env_file:
+        - ./frontend/.env.docker
+        depends_on:
+          - backend
+
   mongo:
     image: mongo:6.0
     container_name: mollidays-mongo
@@ -34,7 +45,8 @@ services:
       - "27017:27017"
     volumes:
       - mongodata:/data/db
-
+  
+    
 volumes:
   pgdata:
   mongodata:
