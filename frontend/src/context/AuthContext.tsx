@@ -1,77 +1,90 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import api from "@/lib/api";
-import axios from "axios";
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useRouter } from "next/router";
+import { loginUser, logoutUser, registerUser, refreshToken } from "@/lib/auth";
+import { decodeToken, isTokenExpired } from "@/lib/jwt";
 
-interface User {
-    id: number;
-    email: string;
-    username: string;
+export interface User {
+  id: number;
+  email: string;
+  username: string;
 }
 
 interface AuthContextType {
-    user: User | null;
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => void;
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            fetchUser(token);
-        }
-    }, []);
+  const loadUserFromToken = () => {
+    const token = localStorage.getItem("access");
+    if (token && !isTokenExpired(token)) {
+      const decoded = decodeToken(token);
+      if (decoded && decoded.user) setUser(decoded.user);
+    } else {
+      setUser(null);
+    }
+  };
 
-    const fetchUser = async (authToken: string) => {
-        try {
-            const response = await api.get("/users/me/", {
-                headers: { Authorization: `Bearer ${authToken}` },
-            });
-            setUser(response.data);
-        } catch (error) {
-            console.error("Fetch error", error);
-            logout();
-        }
-    };
+  const login = async (email: string, password: string) => {
+    const { access, refresh } = await loginUser(email, password);
+    localStorage.setItem("access", access);
+    localStorage.setItem("refresh", refresh);
+    const decoded = decodeToken(access);
+    if (decoded?.user) setUser(decoded.user);
+    router.push("/dashboard");
+  };
 
-    const login = async (email: string, password: string) => {
-        try {
-            const response = await api.post("/login/", { email, password });
-            const { access } = response.data;
-            localStorage.setItem("token", access);
-            await fetchUser(access);
-        } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-               console.error("Login failed:", error.response.data);
-            } else {
-                console.error("Unknown error:", error);
-            }
-            throw error;
-        }
-    };
+  const register = async (email: string, password: string) => {
+    await registerUser(email, password);
+    await login(email, password);
+  };
 
-    const logout = () => {
-        localStorage.removeItem("token");
-        setUser(null);
-    };
+  const logout = () => {
+    logoutUser();
+    setUser(null);
+    router.push("/login");
+  };
 
-    return (
-        <AuthContext.Provider value={{ user, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const newAccess = await refreshToken();
+      if (newAccess) {
+        localStorage.setItem("access", newAccess);
+        const decoded = decodeToken(newAccess);
+        if (decoded?.user) setUser(decoded.user);
+      } else {
+        logout();
+      }
+    }, 4 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    loadUserFromToken();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
