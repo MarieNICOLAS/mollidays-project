@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -17,7 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
     accept_cgu = serializers.BooleanField(write_only=True)
 
@@ -29,7 +30,14 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         errors = {}
 
         if data['password'] != data['confirm_password']:
-            errors['password'] = "Les mots de passe ne correspondent pas."
+            errors['confirm_password'] = "Les mots de passe ne correspondent pas."
+
+        pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{12,}$'
+        if not re.match(pattern, data['password']):
+            errors['password'] = (
+                "Mot de passe trop faible. Il doit contenir au minimum 12 caractères, "
+                "dont au moins une majuscule, une minuscule, un chiffre et un caractère spécial."
+            )
 
         if not data['accept_cgu']:
             errors['accept_cgu'] = "Les conditions générales doivent être acceptées."
