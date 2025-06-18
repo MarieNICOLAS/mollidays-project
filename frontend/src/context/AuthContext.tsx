@@ -39,8 +39,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { access, refresh } = await loginUser(email, password);
     localStorage.setItem("access", access);
     localStorage.setItem("refresh", refresh);
+    
     const decoded = decodeToken(access);
     if (decoded?.user) setUser(decoded.user);
+    
     router.push("/dashboard");
   };
 

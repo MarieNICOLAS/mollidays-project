@@ -41,8 +41,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')
-        validated_data.pop('accept_cgu')
+        accept_cgu = validated_data.pop('accept_cgu')  
         user = User.objects.create_user(**validated_data)
+        user.accept_cgu = accept_cgu
+        user.save()
         return user
 
 
