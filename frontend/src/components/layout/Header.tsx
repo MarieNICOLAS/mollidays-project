@@ -85,12 +85,12 @@ const Navbar = () => {
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild>
-              <Link href="/signin" aria-label="Se connecter">
+              <Link href="/login" aria-label="Se connecter">
                 <User className="h-5 w-5" />
               </Link>
             </Button>
             <Button variant="coral" asChild>
-              <Link href="/signup">S inscrire</Link>
+              <Link href="/register">S inscrire</Link>
             </Button>
           </div>
 
@@ -135,11 +135,11 @@ const Navbar = () => {
             ))}
 
             <div className="pt-2 border-t border-gray-700">
-              <Link href="/signin" className="py-2 text-lg text-white block">
+              <Link href="/login" className="py-2 text-lg text-white block">
                 Se connecter
               </Link>
               <Button className="w-full mt-3" variant="coral" asChild>
-                <Link href="/signup">S inscrire</Link>
+                <Link href="/register">S inscrire</Link>
               </Button>
             </div>
           </div>
