@@ -1,8 +1,11 @@
 import axios, { AxiosRequestConfig, AxiosError, InternalAxiosRequestConfig } from "axios";
-import { refreshToken } from "./auth";
+import { refreshToken, logoutUser } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
+/**
+ * Axios instance configured with base API URL
+ */
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -10,7 +13,10 @@ const api = axios.create({
   },
 });
 
-// Ajoute automatiquement le token d'accès à chaque requête
+/**
+ * Request interceptor:
+ * Automatically attaches the JWT access token to the Authorization header
+ */
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("access");
@@ -22,15 +28,17 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Rafraîchit le token si la réponse est 401 (Unauthorized)
+/**
+ * Response interceptor:
+ * If the response status is 401 (Unauthorized), tries to refresh the access token once.
+ * If refresh fails, logs out the user.
+ */
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry
-    ) {
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const newAccessToken = await refreshToken();
@@ -40,9 +48,12 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
+        // Optional: logout the user if refresh fails
+        logoutUser();
         return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
   }
 );

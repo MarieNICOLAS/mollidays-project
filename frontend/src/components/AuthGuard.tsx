@@ -1,25 +1,28 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
-    const { user } = useAuth();
-    const router = useRouter();
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-    useEffect(() => {
-        if (user === null) {
-            router.push("/login");
-        }
-    }, [user, router]);
-
-    // Si on attend que le contexte charge le user
-    if (user === null) {
-        return <p className="text-center mt-10">Redirection vers la page de connexion...</p>;
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
     }
+  }, [user, loading, router]);
 
-    return <>{children}</>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-600 text-lg">Chargement de la session...</p>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 };
 
 export default AuthGuard;

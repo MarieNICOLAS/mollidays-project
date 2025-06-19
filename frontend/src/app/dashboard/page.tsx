@@ -1,12 +1,15 @@
 "use client";
 
 import AuthGuard from "@/components/AuthGuard";
+import TestAuth from "@/components/TestAuth";
 
 export default function DashboardPage() {
-    return (
-        <AuthGuard>
-            <h1>Bienvenue sur le dashboard</h1>
-            <p>Tu es connecté 🎉</p>
-        </AuthGuard>
-    );
+  return (
+    <AuthGuard>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Bienvenue sur le Dashboard 🎉</h1>
+        <TestAuth />
+      </div>
+    </AuthGuard>
+  );
 }

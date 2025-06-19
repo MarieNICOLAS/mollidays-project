@@ -1,6 +1,5 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -8,18 +7,19 @@ from users.serializer import UserRegisterSerializer
 from cart.models import Cart
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
 def register_view(request):
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
+        
         user = serializer.save()
         Cart.objects.get_or_create(user=user)
-
         refresh = RefreshToken.for_user(user)
+
         return Response({
             'access': str(refresh.access_token),
             'refresh': str(refresh)
         }, status=201)
+    
     return Response(serializer.errors, status=400)
 
 

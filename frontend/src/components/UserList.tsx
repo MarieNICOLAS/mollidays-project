@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { User } from "@/types/user";
+import { API_ROUTES } from "@/lib/apiRoutes";
 
 const UserList = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -16,7 +17,7 @@ const UserList = () => {
 
     useEffect(() => {
         setLoading(true);
-        api.get("/users/")
+        api.get(API_ROUTES.USERS)
             .then((response) => {
                 console.log("Users received:", response.data);
                 setUsers(response.data);

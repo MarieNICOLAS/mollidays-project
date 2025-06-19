@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_ROUTES } from '@/lib/apiRoutes';
 import axios from 'axios';
 
 interface RegisterFormData {
@@ -110,10 +111,7 @@ const RegisterForm: React.FC = () => {
         accept_cgu: formData.accept_cgu,
       };
 
-      await axios.post('/api/register/', payload, {
-        timeout: 10000,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      await axios.post(API_ROUTES.REGISTER, payload);
 
       setSuccessMessage('Inscription réussie !');
       setFormData(initialFormData);
@@ -121,20 +119,21 @@ const RegisterForm: React.FC = () => {
       setTimeout(() => {
         router.push('/login');
       }, 1500);
-    } catch (err: unknown) {
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'response' in err &&
-        (err as { response?: { data?: RegisterFormErrors } }).response?.data
-      ) {
-        setErrors((err as { response: { data: RegisterFormErrors } }).response.data);
-      } else {
-        setErrors({ general: 'Une erreur s’est produite. Veuillez réessayer.' });
+    } 
+      catch (err: unknown) {
+        if (
+          typeof err === 'object' &&
+          err !== null &&
+          'response' in err &&
+          (err as { response?: { data?: RegisterFormErrors } }).response?.data
+        ) {
+          setErrors((err as { response: { data: RegisterFormErrors } }).response.data);
+        } else {
+          setErrors({ general: 'Une erreur s’est produite. Veuillez réessayer.' });
+        }
+      } finally {
+        setIsSubmitting(false);
       }
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const passwordStrength = getPasswordStrength(formData.password || '');
