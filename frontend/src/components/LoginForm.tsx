@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 const LoginForm = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
     const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -16,8 +14,7 @@ const LoginForm = () => {
         setError(null);
 
         try {
-            await login(email, password); // Appel context
-            router.push("/dashboard");   // Redirection
+            await login(email, password); 
         } catch {
             setError("Échec de la connexion. Vérifiez vos identifiants.");
         }

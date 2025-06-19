@@ -35,40 +35,26 @@ export const registerUser = async (
 };
 
 /**
- * Rafraîchit le token d’accès à partir du refresh token
+ * Rafraîchit les tokens d’accès et de rafraîchissement
  */
-// export const refreshToken = async (): Promise<string | null> => {
-//   const refresh = localStorage.getItem('refresh');
-//   if (!refresh) return null;
-
-//   try {
-//     const { data } = await api.post<{ access: string }>(API_ROUTES.REFRESH, { refresh });
-//     return data.access;
-//   } catch (error: unknown) {
-//     if (typeof error === 'object' && error !== null && 'response' in error) {
-//       const err = error as { response?: { data?: unknown } };
-//       console.warn('🔁 Token refresh failed:', err.response?.data);
-//     } else {
-//       console.warn('🔁 Token refresh error:', error);
-//     }
-//     return null;
-//   }
-// };
-export const refreshToken = async (): Promise<string | null> => {
+export const refreshToken = async (): Promise<AuthResponse | null> => {
   const refresh = localStorage.getItem('refresh');
   if (!refresh) return null;
 
   try {
-    const { data } = await api.post<{ access: string }>(API_ROUTES.REFRESH, { refresh });
-    return data.access;
-  } catch (err) {
-    // Ajoute ceci pour bien sortir en cas de 401
-    console.warn("❌ Failed to refresh token:", err);
+    const { data } = await api.post<AuthResponse>(API_ROUTES.REFRESH, { refresh });
+    console.log('🔁 Token refreshed:', data);
+    return data;
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'response' in error) {
+      const err = error as { response?: { data?: unknown } };
+      console.warn('🔁 Token refresh failed:', err.response?.data);
+    } else {
+      console.warn('🔁 Token refresh error:', error);
+    }
     return null;
   }
 };
-
-
 
 /**
  * Déconnexion : suppression des tokens

@@ -3,6 +3,21 @@ import { refreshToken, logoutUser } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
+// Flag pour éviter les appels concurrents de refresh
+let isRefreshing = false;
+let refreshSubscribers: Array<(token: string) => void> = [];
+
+// Fonction pour notifier tous les abonnés du nouveau token
+const onRefreshed = (token: string) => {
+  refreshSubscribers.map(callback => callback(token));
+  refreshSubscribers = [];
+};
+
+// Fonction pour ajouter un abonné
+const subscribeTokenRefresh = (callback: (token: string) => void) => {
+  refreshSubscribers.push(callback);
+};
+
 /**
  * Axios instance configured with base API URL
  */
@@ -40,17 +55,43 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
+      if (isRefreshing) {
+        // Si un refresh est déjà en cours, attendre qu'il se termine
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token: string) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+
       try {
-        const newAccessToken = await refreshToken();
-        if (newAccessToken && originalRequest.headers) {
-          localStorage.setItem("access", newAccessToken);
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        const tokens = await refreshToken();
+        if (tokens && originalRequest.headers) {
+          const { access, refresh } = tokens;
+          localStorage.setItem('access', access);
+          localStorage.setItem('refresh', refresh);
+          originalRequest.headers.Authorization = `Bearer ${access}`;
+          
+          // Notifier tous les abonnés
+          onRefreshed(access);
+          
           return api(originalRequest);
+        } else {
+          throw new Error('No tokens received');
         }
       } catch (refreshError) {
-        // Optional: logout the user if refresh fails
+        console.error('❌ Token refresh failed in interceptor:', refreshError);
         logoutUser();
+        // Redirection vers login sera gérée par AuthContext
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 

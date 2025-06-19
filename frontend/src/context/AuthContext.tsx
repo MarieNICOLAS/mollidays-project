@@ -7,6 +7,7 @@ import React, {
   useContext,
   ReactNode,
   createContext,
+  useRef,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -39,16 +40,72 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isRefreshingRef = useRef(false);
 
-  const fetchUserDetails = async () => {
+  const fetchUserDetails = async (): Promise<boolean> => {
     try {
       const response = await api.get<User>(API_ROUTES.ME);
       setUser(response.data);
+      return true;
     } catch (err) {
       console.error('❌ Erreur lors du fetch /users/me:', err);
       setUser(null);
+      return false;
     }
   };
+
+  const logout = useCallback(() => {
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
+    
+    logoutUser();
+    setUser(null);
+    router.push('/login');
+  }, [router]);
+
+  const startTokenRefreshInterval = useCallback(() => {
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+    }
+
+    refreshIntervalRef.current = setInterval(async () => {
+      if (isRefreshingRef.current) return;
+
+      const token = localStorage.getItem('access');
+      if (!token) {
+        clearInterval(refreshIntervalRef.current!);
+        return;
+      }
+
+    const decoded = decodeToken(token);
+    if (decoded?.exp) {
+      const timeUntilExpiry = decoded.exp - Math.floor(Date.now() / 1000);
+      if (timeUntilExpiry < 120) {
+        isRefreshingRef.current = true;
+
+        try {
+          const tokens = await refreshToken();
+          if (tokens) {
+            localStorage.setItem('access', tokens.access);
+            localStorage.setItem('refresh', tokens.refresh);
+            console.log('✅ Token refreshed successfully');
+          } else {
+            console.log('❌ Token refresh failed - logging out');
+            logout();
+          }
+        } catch (error) {
+          console.error('❌ Error during token refresh:', error);
+          logout();
+        } finally {
+          isRefreshingRef.current = false;
+        }
+      }
+    }
+  }, 60 * 1000);
+}, [logout]);
 
   const loadUserFromToken = async () => {
     const token = localStorage.getItem('access');
@@ -56,29 +113,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token && !isTokenExpired(token)) {
       const decoded = decodeToken(token) as DecodedJWT | null;
       if (decoded?.user_id) {
-        await fetchUserDetails();
+        const success = await fetchUserDetails();
+        if (success) {
+          startTokenRefreshInterval();
+        }
       } else {
         setUser(null);
       }
     } else {
       setUser(null);
+      // Tente un refresh si on a un refresh token
+      const refreshTokenValue = localStorage.getItem('refresh');
+      if (refreshTokenValue) {
+        try {
+          const tokens = await refreshToken();
+          if (tokens) {
+            localStorage.setItem('access', tokens.access);
+            localStorage.setItem('refresh', tokens.refresh);
+            const success = await fetchUserDetails();
+            if (success) {
+              startTokenRefreshInterval();
+            }
+          }
+        } catch (error) {
+          console.log('❌ Initial token refresh failed');
+          logoutUser(); // Nettoie les tokens invalides
+          throw error;
+        }
+      }
     }
 
     setLoading(false);
   };
 
   const login = async (email: string, password: string) => {
-    const { access, refresh } = await loginUser(email, password);
-    localStorage.setItem('access', access);
-    localStorage.setItem('refresh', refresh);
+    try {
+      const { access, refresh } = await loginUser(email, password);
+      localStorage.setItem('access', access);
+      localStorage.setItem('refresh', refresh);
 
-    const decoded = decodeToken(access) as DecodedJWT | null;
-    if (decoded?.user_id) {
-      await fetchUserDetails();
-      router.push('/dashboard');
-    } else {
+      const decoded = decodeToken(access) as DecodedJWT | null;
+      if (decoded?.user_id) {
+        const success = await fetchUserDetails();
+        if (success) {
+          startTokenRefreshInterval();
+          router.push('/dashboard');
+        } else {
+          throw new Error('Failed to fetch user details');
+        }
+      } else {
+        throw new Error('Invalid token received');
+      }
+    } catch (error) {
+      console.error('❌ Login failed:', error);
       setUser(null);
-      router.push('/login');
+      logoutUser();
+      throw error; // Propage l'erreur pour que le composant Login puisse l'afficher
     }
   };
 
@@ -87,37 +177,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await login(email, password);
   };
 
-  const logout = useCallback(() => {
-    logoutUser();
-    setUser(null);
-    router.push('/login');
-  }, [router]);
 
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      const newAccess = await refreshToken();
-      if (newAccess) {
-        localStorage.setItem('access', newAccess);
-        const decoded = decodeToken(newAccess);
-        if (decoded?.user_id) {
-          await fetchUserDetails();
-        }
-      } else {
-        clearInterval(intervalId);
-        logout();
-      }
-    }, 4 * 60 * 1000); // 4 minutes
-
-    return () => clearInterval(intervalId);
-  }, [logout]);
-
+  // Effet pour charger l'utilisateur au démarrage
   useEffect(() => {
     loadUserFromToken();
-  }, []);
+    
+    // Cleanup à la destruction du composant
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, loading, login, register, logout }}
+      value={{ 
+        user, 
+        isAuthenticated: !!user, 
+        loading, 
+        login, 
+        register, 
+        logout 
+      }}
     >
       {children}
     </AuthContext.Provider>
