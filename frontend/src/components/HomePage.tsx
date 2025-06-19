@@ -1,6 +1,6 @@
 "use client";
 
-import UserList from "@/components/UserList";
+import UserList from "@/components/dashboard/UserList";
 import { useAuth } from "@/context/AuthContext";
 
 export default function HomePage() {

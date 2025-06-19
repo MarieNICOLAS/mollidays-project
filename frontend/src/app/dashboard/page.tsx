@@ -1,6 +1,6 @@
 "use client";
 
-import AuthGuard from "@/components/AuthGuard";
+import AuthGuard from "@/components/shared/AuthGuard";
 import TestAuth from "@/components/TestAuth";
 
 export default function DashboardPage() {
